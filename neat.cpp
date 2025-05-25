@@ -11,6 +11,7 @@ float activation(float z) {
 struct Node {
 	NodeType type;
 	float value;
+	bool calculated;
 };
 
 struct Connection {
@@ -25,8 +26,8 @@ struct Genome {
 	std::vector<Connection> connections;
 	std::vector<Node> nodes;
 
-	void addNode(Node node) {
-		nodes.push_back(node);
+	void addNode(NodeType type, float value = 0) {
+		nodes.push_back({ type, value, false });
 	}
 
 	void addConnection(int in, int out, float weight) {
@@ -35,6 +36,7 @@ struct Genome {
 
 	void value(int id) {
 		if(nodes[id].type == NodeType::input) return;
+		if(nodes[id].calculated == true) return;
 
 		float sum = 0;
 		for(auto it = connections.begin(); it != connections.end(); it++) {
@@ -45,9 +47,14 @@ struct Genome {
 		}
 
 		nodes[id].value = activation(sum);
+		nodes[id].calculated = true;
 	}
 
 	void calculate() {
+		for(int i = 0; i < nodes.size(); i++) {
+			nodes[i].calculated = false;
+		}
+
 		for(int i = 0; i < nodes.size(); i++) {
 			if (nodes[i].type == NodeType::output) {
 				value(i);
@@ -72,10 +79,10 @@ int main() {
 	std::cout << "Hello NEAT!" << std::endl;
 
 	Genome genome;
-	genome.addNode({NodeType::input, 0.5});
-	genome.addNode({NodeType::input, 0.3});
-	genome.addNode({NodeType::hidden, 0.0});
-	genome.addNode({NodeType::output, 0.0});
+	genome.addNode(NodeType::input, 0.5);
+	genome.addNode(NodeType::input, 0.3);
+	genome.addNode(NodeType::hidden);
+	genome.addNode(NodeType::output);
 
 	genome.addConnection(0, 2, 0.9);
 	genome.addConnection(1, 2, 0.8);
